@@ -7,6 +7,7 @@ using Microsoft.SyndicationFeed;
 using System.ServiceModel.Syndication;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Webscraper{
     class Program
@@ -15,10 +16,12 @@ namespace Webscraper{
         {
 
             string fullURL = "https://www.ndbc.noaa.gov/data/5day2/41004_5day.spec";
+            string testURL = "https://www.ndbc.noaa.gov/data/realtime2/41004.spec";
 
-            //string RssUrl = "https://www.ndbc.noaa.gov/rss/ndbc_obs_search.php?lat=40N&lon=73W&radius=1000";
             var httpclient = new HttpClient();
-            var html = httpclient.GetStringAsync(fullURL).Result;
+
+            //Change URL below
+            var html = httpclient.GetStringAsync(testURL).Result;
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(html);
 
@@ -27,16 +30,32 @@ namespace Webscraper{
             {
                 using (StreamWriter writer = new StreamWriter(fileName, true))
                 {
-                    foreach (var item in htmlDocument.DocumentNode.InnerText.Skip(141))
-                    {
-                        writer.Write(item.ToString());                        
-                    }
+                    StringBuilder header = new StringBuilder();
+                    header.AppendLine("year, Month, Day, Hour, Minute, Wave_Height, Swell_Height, SWP, WWH, WWP, SWD, WWD, Steepness, APD, MWD");
+                    writer.Write(header.ToString());
+
+                    string y = "";
+
+                    foreach (var item  in htmlDocument.DocumentNode.InnerText.Skip(141))
+                    {                        
+                        if (item.ToString() != " ")
+                        {
+                            y += item.ToString();                            
+                        }
+                        else if (y != ",")
+                        {
+                            writer.Write(y);
+                            y = ",";
+                        }
+                    }                   
                 }                    
             }
             catch (Exception exp)
             {
                 Console.Write(exp.Message);
             }
+
+            Console.WriteLine();
 
         }         
 
