@@ -16,47 +16,60 @@ namespace Webscraper{
         {
 
             string fullURL = "https://www.ndbc.noaa.gov/data/5day2/41004_5day.spec";
-            string testURL = "https://www.ndbc.noaa.gov/data/realtime2/41004.spec";
+            string testURL = "https://www.ndbc.noaa.gov/data/realtime2/51101.spec";            
 
-            var httpclient = new HttpClient();
+            //List<string> list = new List<string>();
+            string[] list = Directory.GetFiles(@"A:\New\Y"); 
 
-            //Change URL below
-            var html = httpclient.GetStringAsync(testURL).Result;
-            var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(html);
+            bool headerAdded = false;
 
-            string fileName = @"A:\Rogue_Waves.txt";
-            try
+            foreach (var list1 in list)
             {
-                using (StreamWriter writer = new StreamWriter(fileName, true))
+                Console.WriteLine(list1);
+                string test_List = "https://www.ndbc.noaa.gov/data/realtime2/" + Path.GetFileName(list1);
+
+                var httpclient = new HttpClient();
+
+                //Change URL below
+                var html = httpclient.GetStringAsync(testURL).Result;
+                var htmlDocument = new HtmlDocument();
+                htmlDocument.LoadHtml(html);
+
+                string fileName = @"A:\Rogue_Waves.csv";
+
+                try
                 {
-                    StringBuilder header = new StringBuilder();
-                    header.AppendLine("year, Month, Day, Hour, Minute, Wave_Height, Swell_Height, SWP, WWH, WWP, SWD, WWD, Steepness, APD, MWD");
-                    writer.Write(header.ToString());
-
-                    string y = "";
-
-                    foreach (var item  in htmlDocument.DocumentNode.InnerText.Skip(141))
-                    {                        
-                        if (item.ToString() != " ")
+                    using (StreamWriter writer = new StreamWriter(fileName, true))
+                    {
+                        if (headerAdded == false)
                         {
-                            y += item.ToString();                            
+                            StringBuilder header = new StringBuilder();
+                            header.AppendLine("year, Month, Day, Hour, Minute, Wave_Height, Swell_Height, SWP, WWH, WWP, SWD, WWD, Steepness, APD, MWD");
+                            writer.Write(header.ToString());
+                            headerAdded = true;
                         }
-                        else if (y != ",")
+
+                        string y = "";
+
+                        foreach (var item in htmlDocument.DocumentNode.InnerText.Skip(141))
                         {
-                            writer.Write(y);
-                            y = ",";
+                            if (item.ToString() != " ")
+                            {
+                                y += item.ToString();
+                            }
+                            else if (y != ",")
+                            {
+                                writer.Write(y);
+                                y = ",";
+                            }
                         }
-                    }                   
-                }                    
+                    }
+                }
+                catch (Exception exp)
+                {
+                    Console.Write(exp.Message);
+                }
             }
-            catch (Exception exp)
-            {
-                Console.Write(exp.Message);
-            }
-
-            Console.WriteLine();
-
         }         
 
     }
